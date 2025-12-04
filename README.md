@@ -3,7 +3,7 @@
 A decentralized, serverless Single Page Application (SPA) for crowdfunding that uses Google Sheets as a database and UPI for direct peer-to-peer payments.
 
 <p align="left">
-  <img src="./screenshot.jpg" alt="P2P Crowdfunding Screenshot" width="800">
+  <img src="./screenshot.png" alt="P2P Crowdfunding Screenshot" width="800">
 </p>
 
 **About**
