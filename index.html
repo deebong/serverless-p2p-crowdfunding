@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FundFlow | P2P Crowdfunding</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #F8FAFC;
+            --surface: #FFFFFF;
+            --primary: #6366F1;
+            --text-main: #0F172A;
+            --text-sub: #64748B;
+            --radius: 16px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            
+            /* Category Colors */
+            --c-medical: #14B8A6;   
+            --c-education: #3B82F6;
+            --c-startups: #10B981;
+            --c-creative: #8B5CF6;
+            --c-sports: #F59E0B;
+            --c-emergency: #F43F5E; 
+            --c-pets: #06B6D4;      
+            --c-default: #6366F1;
+        }
+
+        /* Global Reset & Scrollbars */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* --- HEADER --- */
+        header {
+            background: var(--surface);
+            padding: 0 2rem;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #E2E8F0;
+            flex-shrink: 0;
+            z-index: 20;
+            gap: 20px;
+        }
+        
+        .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.3rem; color: var(--text-main); cursor: pointer; white-space: nowrap; }
+        .brand span { color: var(--primary); }
+        .brand-text { display: inline-block; } 
+        
+        .header-links { display: flex; gap: 20px; font-size: 0.9rem; font-weight: 500; color: var(--text-sub); display: none; }
+        .header-links a { cursor: pointer; transition: 0.2s; text-decoration: none; color: inherit; }
+        .header-links a:hover { color: var(--primary); }
+
+        /* Search Box (Universal) */
+        .header-search {
+            background: #F1F5F9;
+            padding: 8px 16px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            width: 250px;
+            border: 1px solid transparent;
+            transition: 0.2s;
+        }
+        .header-search:focus-within { border-color: var(--primary); background: white; }
+        .header-search svg { width: 18px; height: 18px; color: var(--text-sub); margin-right: 8px; flex-shrink: 0; }
+        .header-search input { border: none; background: transparent; outline: none; width: 100%; font-size: 0.9rem; color: var(--text-main); }
+
+        .mobile-menu-btn { display: none; font-size: 1.5rem; cursor: pointer; margin-right: 5px; }
+
+        /* --- LAYOUT --- */
+        .layout-container { display: flex; flex: 1; overflow: hidden; }
+
+        /* SIDEBAR */
+        aside {
+            width: 260px;
+            background: var(--surface);
+            border-right: 1px solid #E2E8F0;
+            padding: 2rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-header { font-size: 0.75rem; text-transform: uppercase; color: #94A3B8; margin: 1.5rem 0 0.5rem; font-weight: 700; letter-spacing: 1px; }
+        .nav-item { padding: 10px 14px; margin-bottom: 4px; border-radius: 10px; cursor: pointer; color: var(--text-sub); font-size: 0.95rem; font-weight: 500; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+        .nav-item:hover, .nav-item.active { background: #EEF2FF; color: var(--primary); }
+        .cat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+        /* Mobile Links inside Sidebar */
+        .mobile-links { display: none; border-top: 1px solid #E2E8F0; margin-top: 1rem; padding-top: 1rem; }
+
+        /* MAIN CONTENT */
+        main { flex: 1; padding: 2rem; overflow-y: auto; position: relative; }
+
+        .campaign-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; padding-bottom: 6rem; }
+
+        /* CARD STYLE */
+        .card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); transition: 0.3s; border: 1px solid #F1F5F9; cursor: pointer; overflow: hidden; display: flex; flex-direction: column; }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1); }
+        .card-placeholder { height: 140px; display: flex; align-items: center; justify-content: center; color: white; font-size: 2.5rem; font-weight: 700; text-transform: uppercase; }
+        .card-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
+        .cat-badge { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; display: inline-block; margin-bottom: 8px; align-self: flex-start; }
+        .card-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; line-height: 1.4; color: var(--text-main); }
+        .card-creator { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 1rem; }
+        .progress-bg { background: #E2E8F0; height: 6px; border-radius: 10px; width: 100%; overflow: hidden; margin-top: auto; }
+        .progress-fill { height: 100%; transition: width 1s ease; border-radius: 10px; }
+        .card-stats { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; margin-top: 8px; }
+
+        /* BUTTONS */
+        .btn { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 12px; cursor: pointer; font-weight: 600; transition: 0.2s; display: inline-flex; justify-content: center; align-items: center; }
+        .btn:hover { opacity: 0.9; }
+        .btn-outline { background: transparent; border: 1px solid #CBD5E1; color: var(--text-main); }
+
+        /* PROFILE STATS */
+        .profile-stats-row { display: flex; gap: 1.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .stat-card { background: white; padding: 1.5rem; border-radius: 16px; border: 1px solid #E2E8F0; min-width: 150px; flex: 1; box-shadow: var(--shadow); }
+        .stat-value { font-size: 1.8rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
+        .stat-label { color: var(--text-sub); font-size: 0.9rem; font-weight: 600; }
+
+        /* CONTENT PAGES (About, ToS, etc) */
+        .content-box { background: white; padding: 2.5rem; border-radius: var(--radius); box-shadow: var(--shadow); max-width: 800px; margin: 0 auto; line-height: 1.8; color: #334155; }
+        .content-box h2 { font-size: 2rem; margin-bottom: 1.5rem; color: var(--text-main); }
+        .content-box h4 { margin: 1.5rem 0 0.5rem; color: var(--text-main); }
+        .content-box ul { padding-left: 20px; margin-bottom: 1rem; }
+
+        /* FLOATING ACTION BUTTON (Mobile Only) */
+        .fab {
+            position: fixed; bottom: 25px; right: 25px;
+            background: var(--primary); color: white;
+            width: 60px; height: 60px; border-radius: 50%;
+            display: none; justify-content: center; align-items: center;
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+            z-index: 100; cursor: pointer; transition: transform 0.2s;
+        }
+        .fab:active { transform: scale(0.95); }
+
+        /* DETAILS VIEW */
+        #detailsView { display: none; position: absolute; top: 0; left: 0; width: 100%; min-height: 100%; background: var(--bg); z-index: 10; padding: 2rem; }
+        .detail-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; max-width: 1200px; margin: 0 auto; }
+        .detail-box { background: white; padding: 2rem; border-radius: var(--radius); margin-bottom: 1.5rem; box-shadow: var(--shadow); }
+        .detail-hero { height: 180px; border-radius: 16px; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: center; color: white; font-size: 4rem; font-weight: 800; }
+        
+        /* Interactive Creator Link */
+        .creator-link { color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline; text-decoration-color: transparent; transition: 0.2s; }
+        .creator-link:hover { text-decoration-color: var(--primary); }
+
+        /* MODALS */
+        .modal { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); 
+            display: none; justify-content: center; align-items: center; 
+            z-index: 1000; padding: 1rem; 
+        }
+        .modal-content { 
+            background: white; padding: 2rem; width: 95%; max-width: 400px;
+            border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
+            max-height: 90vh; overflow-y: auto; position: relative;
+            display: flex; flex-direction: column; gap: 1rem; scrollbar-width: none;
+        }
+        .modal-content::-webkit-scrollbar { display: none; }
+        
+        .form-group { margin-bottom: 0.5rem; text-align: left; }
+        .form-label { display: block; font-size: 0.8rem; margin-bottom: 0.3rem; color: var(--text-sub); font-weight: 600; }
+        .form-input { width: 100%; padding: 12px; border: 1px solid #CBD5E1; border-radius: 12px; outline: none; font-size: 0.95rem; }
+        .form-input:focus { border-color: var(--primary); }
+        textarea.form-input { resize: vertical; min-height: 80px; }
+        .captcha-box { background: #F1F5F9; padding: 10px; border-radius: 10px; text-align: center; font-weight: 700; letter-spacing: 2px; border: 1px solid #E2E8F0; }
+
+        /* MOBILE RESPONSIVENESS */
+        @media (min-width: 769px) {
+            .header-links { display: flex; }
+            .mobile-menu-btn { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            header { padding: 0 1rem; height: 65px; }
+            .header-links { display: none; }
+            .mobile-menu-btn { display: block; }
+            .brand-text { display: none; }
+            .header-search { flex: 1; width: auto; max-width: none; }
+            
+            aside { position: fixed; left: -100%; top: 65px; height: calc(100vh - 65px); z-index: 50; width: 85%; box-shadow: 10px 0 20px rgba(0,0,0,0.1); background: var(--surface); }
+            aside.open { left: 0; }
+            
+            .mobile-links { display: block; }
+            
+            main { padding: 1rem; }
+            .detail-layout { grid-template-columns: 1fr; }
+            .modal-content { padding: 1.5rem; width: 100%; }
+            
+            .fab { display: flex; }
+            .sidebar-create-btn { display: none; }
+            
+            .content-box { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="brand" onclick="navigate('Home')">
+            <div class="mobile-menu-btn" onclick="toggleSidebar(event)">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </div>
+            <span>◆</span><span class="brand-text">&nbsp;FundFlow</span>
+        </div>
+        
+        <div class="header-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="searchInput" placeholder="Search campaigns..." onkeyup="handleSearch(this.value)">
+        </div>
+
+        <nav class="header-links">
+            <a onclick="navigate('Content', 'About')">About</a>
+            <a onclick="navigate('Content', 'HowWorks')">How it works</a>
+            <a onclick="navigate('Content', 'Privacy')">Privacy</a>
+            <a onclick="navigate('Content', 'ToS')">ToS</a>
+            <a onclick="navigate('Content', 'Contact')">Contact</a>
+        </nav>
+    </header>
+
+    <div class="layout-container">
+        <!-- Sidebar -->
+        <aside id="sidebar">
+            <div class="nav-item active" id="nav-Home" onclick="navigate('Home', this)">Home</div>
+            <div class="nav-item" id="nav-Profile" onclick="navigate('MyProfile', this)">My Profile</div>
+            
+            <div class="nav-header">Categories</div>
+            <div class="nav-item" onclick="filterCategory('Medical', this)"><span class="cat-dot" style="background:var(--c-medical)"></span> Medical</div>
+            <div class="nav-item" onclick="filterCategory('Education', this)"><span class="cat-dot" style="background:var(--c-education)"></span> Education</div>
+            <div class="nav-item" onclick="filterCategory('Startups', this)"><span class="cat-dot" style="background:var(--c-startups)"></span> Startups</div>
+            <div class="nav-item" onclick="filterCategory('Creative', this)"><span class="cat-dot" style="background:var(--c-creative)"></span> Creative</div>
+            <div class="nav-item" onclick="filterCategory('Sports', this)"><span class="cat-dot" style="background:var(--c-sports)"></span> Sports</div>
+            <div class="nav-item" onclick="filterCategory('Pets', this)"><span class="cat-dot" style="background:var(--c-pets)"></span> Pets</div>
+            <div class="nav-item" onclick="filterCategory('Emergency', this)"><span class="cat-dot" style="background:var(--c-emergency)"></span> Emergency</div>
+
+            <!-- Mobile Only Links -->
+            <div class="mobile-links">
+                <div class="nav-item" onclick="navigate('Content', 'About')">About FundFlow</div>
+                <div class="nav-item" onclick="navigate('Content', 'ToS')">Terms of Service</div>
+                <div class="nav-item" onclick="navigate('Content', 'Privacy')">Privacy Policy</div>
+                <div class="nav-item" onclick="navigate('Content', 'Contact')">Contact Support</div>
+            </div>
+
+            <div style="margin-top:auto" class="sidebar-create-btn">
+                <button class="btn" style="width:100%" onclick="openCreateModal()">+ Start Campaign</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main>
+            <!-- Dashboard View -->
+            <div id="dashboardView">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
+                    <h1 id="pageTitle" style="font-size:1.5rem;">All Campaigns</h1>
+                    <div style="font-size:0.8rem; color:var(--text-sub); display:flex; align-items:center; gap:5px;">
+                        <span id="cacheStatus"></span>
+                    </div>
+                </div>
+                
+                <div id="loading" style="text-align:center; margin-top:50px; color:var(--text-sub)">Loading Projects...</div>
+                <div class="campaign-grid" id="campaignContainer"></div>
+            </div>
+
+            <!-- Profile View (Shared for My Profile & Creator Profile) -->
+            <div id="profileView" style="display:none;">
+                 <div style="margin-bottom:1.5rem;">
+                    <h1 style="font-size:1.5rem; margin-bottom:5px;" id="profileName">My Profile</h1>
+                    <p style="color:var(--text-sub);" id="profileSub">Track impact and active campaigns</p>
+                </div>
+
+                <div class="profile-stats-row">
+                    <div class="stat-card">
+                        <div class="stat-value" id="profCount">0</div>
+                        <div class="stat-label">Campaigns Created</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="profRaised">₹0</div>
+                        <div class="stat-label">Total Funds Raised</div>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom:1rem;">Campaigns</h3>
+                <div class="campaign-grid" id="profileContainer"></div>
+            </div>
+
+            <!-- Generic Content View (About, ToS, etc) -->
+            <div id="contentView" style="display:none;">
+                <div class="content-box" id="contentBoxBody">
+                    <!-- Dynamic Content -->
+                </div>
+            </div>
+
+            <!-- Details View -->
+            <div id="detailsView">
+                <div style="margin-bottom:1.5rem; cursor:pointer; color:var(--text-sub); font-weight:600; display:inline-flex; align-items:center; gap:5px;" onclick="closeDetails()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    Back to Home
+                </div>
+                
+                <div class="detail-layout">
+                    <!-- Left -->
+                    <div>
+                        <div class="detail-box">
+                            <div id="detHero" class="detail-hero"></div>
+                            <span id="detBadge" class="cat-badge">Category</span>
+                            <h1 id="detTitle" style="font-size: 1.8rem; margin: 10px 0;"></h1>
+                            <p style="color:var(--text-sub); font-weight:600;">
+                                Created by <span id="detCreator" class="creator-link"></span>
+                            </p>
+                        </div>
+
+                        <div class="detail-box">
+                            <h3 style="margin-bottom:1rem;">About</h3>
+                            <p id="detDesc" style="line-height: 1.7; white-space: pre-wrap; color:#334155; font-size:0.95rem;"></p>
+                        </div>
+                    </div>
+
+                    <!-- Right -->
+                    <div>
+                        <div class="detail-box" style="position:sticky; top:20px;">
+                            <div class="progress-bg" style="height:10px; margin-bottom:15px;">
+                                <div id="detBar" class="progress-fill" style="width:0%;"></div>
+                            </div>
+                            <h2 id="detRaised" style="font-size:2rem; color:var(--primary);">₹0</h2>
+                            <p style="color:var(--text-sub); margin-bottom:1.5rem;">raised of <span id="detTarget"></span> goal</p>
+                            
+                            <button class="btn" style="width:100%; font-size:1.1rem; margin-bottom:10px;" onclick="openDonateModalFromDetails()">Donate Now</button>
+                            <button class="btn btn-outline" style="width:100%" onclick="shareWhatsApp()">Share on WhatsApp</button>
+                            
+                            <hr style="margin: 1.5rem 0; border:0; border-top:1px solid #eee;">
+                            
+                            <h4 style="margin-bottom:10px;">Rewards</h4>
+                            <div id="detRewards" style="background:#F8FAFC; padding:10px; border-radius:10px; font-size:0.9rem; line-height:1.4;"></div>
+                            
+                            <h4 style="margin:15px 0 10px;">End Date</h4>
+                            <div id="detEnd" style="font-weight:600; color:var(--text-sub);"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Mobile Floating Action Button -->
+    <div class="fab" onclick="openCreateModal()">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    </div>
+
+    <!-- Create Campaign Modal -->
+    <div class="modal" id="createModal">
+        <div class="modal-content">
+            <h2 style="margin-bottom:0.5rem; text-align:center;">Start Fundraising</h2>
+            
+            <div class="form-group"><label class="form-label">Category</label>
+                <select id="cCat" class="form-input">
+                    <option value="Medical">Medical</option>
+                    <option value="Education">Education</option>
+                    <option value="Startups">Startups</option>
+                    <option value="Creative">Creative</option>
+                    <option value="Sports">Sports</option>
+                    <option value="Pets">Pets</option>
+                    <option value="Emergency">Emergency</option>
+                </select>
+            </div>
+            <div class="form-group"><label class="form-label">Campaign Title</label><input type="text" id="cTitle" class="form-input"></div>
+            <div class="form-group"><label class="form-label">Story / Description</label><textarea id="cDesc" class="form-input" rows="3"></textarea></div>
+            
+            <div style="display:flex; gap:10px;">
+                <div class="form-group" style="flex:1"><label class="form-label">Target (₹)</label><input type="number" id="cTarget" class="form-input"></div>
+                <div class="form-group" style="flex:1"><label class="form-label">End Date</label><input type="date" id="cDate" class="form-input"></div>
+            </div>
+            <div class="form-group"><label class="form-label">Rewards for Donors</label><textarea id="cRewards" class="form-input" placeholder="e.g. ₹500: Thank you note..." rows="2"></textarea></div>
+            <div class="form-group"><label class="form-label">Your UPI ID</label><input type="text" id="cUpi" class="form-input" placeholder="e.g. mobile@paytm or user@oksbi"></div>
+            <div class="form-group"><label class="form-label">Your Name</label><input type="text" id="cCreator" class="form-input"></div>
+            
+            <div class="form-group">
+                <label class="form-label">Spam Check: <span id="captchaQ"></span></label>
+                <input type="number" id="cCaptcha" class="form-input" placeholder="Enter Sum">
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:1rem;">
+                <button class="btn" style="flex:1" onclick="submitCampaign()">Launch</button>
+                <button class="btn btn-outline" style="flex:1" onclick="closeModal('createModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Donate Modal -->
+    <div class="modal" id="donateModal">
+        <div class="modal-content" style="text-align: center;">
+            <div>
+                <h3 id="dTitle" style="margin-bottom: 2px;">Support Project</h3>
+                <p style="color:var(--text-sub); font-size:0.85rem;">Direct UPI Transfer</p>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+                <div style="background: white; padding: 10px; border:1px solid #E2E8F0; border-radius:12px; display:inline-block;">
+                    <img id="qrImage" src="" width="160" height="160" style="display:block;" />
+                </div>
+                <input type="number" id="dAmount" value="500" class="form-input" style="text-align:center; font-size:1.5rem; width:150px; font-weight:700;" onchange="updateQR()">
+            </div>
+            
+            <p id="payInstruct" style="font-size:0.75rem; color:#94A3B8;">Scan with GPay / PhonePe / Paytm</p>
+            
+            <a id="upiLink" href="#" class="btn" style="width:100%; display:none;">Open Payment App</a>
+            
+            <div style="text-align:left; background:#F8FAFC; padding:15px; border-radius:12px; border:1px solid #F1F5F9;">
+                <div class="form-group">
+                    <label class="form-label">Transaction Ref / UTR (Required)</label>
+                    <input type="text" id="dRef" class="form-input" placeholder="12-digit UTR">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Your Name</label>
+                    <input type="text" id="dName" class="form-input">
+                </div>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <button class="btn" style="flex:1" onclick="submitDonation()">I Have Paid</button>
+                <button class="btn btn-outline" style="flex:1" onclick="closeModal('donateModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIG
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/PASTE_YOUR_WEB_URL_HERE/exec';
+        const CACHE_KEY = 'fundflow_data';
+        const CACHE_TIME_KEY = 'fundflow_time';
+        const CACHE_DURATION = 1000 * 60 * 10; // 10 minutes cache
+
+        // STATE
+        let allCampaigns = [];
+        let currentDetails = {};
+        let myCampaigns = JSON.parse(localStorage.getItem('myCampaigns') || '[]');
+        let captchaAnswer = 0;
+        
+        // MAPPING
+        const catMap = {
+            'Medical': 'var(--c-medical)', 'Education': 'var(--c-education)',
+            'Startups': 'var(--c-startups)', 'Creative': 'var(--c-creative)',
+            'Sports': 'var(--c-sports)', 'Emergency': 'var(--c-emergency)',
+            'Pets': 'var(--c-pets)'
+        };
+
+        // CONTENT MAP
+        const contentPages = {
+            'About': `<h2>About FundFlow</h2><p>FundFlow is a decentralized, peer-to-peer crowdfunding platform designed to connect dreamers with supporters directly. We believe in the power of community to fund medical emergencies, creative projects, educational goals, and innovative startups.</p><br><p>Our mission is to remove intermediaries and fees, allowing 100% of contributions to go directly to the campaign creators via UPI.</p>`,
+            'HowWorks': `<h2>How it Works</h2><h4>1. Create a Campaign</h4><p>Tell your story, set a goal, and add your UPI ID. It takes less than 2 minutes.</p><h4>2. Share & Promote</h4><p>Share your unique campaign link on WhatsApp, Instagram, and Twitter to gather support.</p><h4>3. Receive Funds Directly</h4><p>Donors pay directly to your UPI ID (GPay, PhonePe, etc.). No waiting periods, no platform fees.</p>`,
+            'Privacy': `<h2>Privacy Policy</h2><p>At FundFlow, we value your privacy.</p><ul><li>We do not store your banking passwords or PINs.</li><li>Campaign data is public to ensure transparency.</li><li>We use local storage on your device to remember your created campaigns.</li><li>We do not sell your data to third parties.</li></ul>`,
+            'ToS': `<h2>Terms of Service</h2><p>By using FundFlow, you agree to the following:</p><ul><li>You are responsible for the authenticity of your campaign.</li><li>Fraudulent campaigns will be removed.</li><li>Donations are voluntary and non-refundable.</li><li>FundFlow is a facilitator and not responsible for the end-use of funds.</li></ul>`,
+            'Contact': `<h2>Contact Us</h2><p>Need help or want to report a campaign?</p><p>Email us at: <strong>support@fundflow.com</strong></p><p>Or reach out on our social media handles.</p>`
+        };
+
+        window.onload = async () => {
+            await fetchCampaigns();
+            handleDeepLink(); 
+        };
+
+        function escapeHtml(text) {
+            if (!text) return text;
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        async function fetchCampaigns() {
+            const cacheStatus = document.getElementById('cacheStatus');
+            const cachedData = localStorage.getItem(CACHE_KEY);
+            const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+            const now = Date.now();
+
+            // 1. Try Load from Cache
+            if (cachedData && cachedTime && (now - cachedTime < CACHE_DURATION)) {
+                console.log('Loading from cache...');
+                allCampaigns = JSON.parse(cachedData);
+                document.getElementById('loading').style.display = 'none';
+                renderCampaigns(allCampaigns);
+                // Background update (stale-while-revalidate)
+                fetchRemote(true);
+            } else {
+                // 2. Fetch Fresh if no cache or expired
+                await fetchRemote(false);
+            }
+        }
+
+        async function fetchRemote(isBackground) {
+            try {
+                if(!isBackground) document.getElementById('loading').innerText = 'Loading Projects...';
+                
+                const res = await fetch(`${APPS_SCRIPT_URL}?op=getCampaigns`);
+                const data = await res.json();
+                
+                if(data.error) { 
+                    if(!isBackground) document.getElementById('loading').innerText = 'Backend Error: ' + data.error; 
+                    return; 
+                }
+                
+                // Reverse to show newest campaigns first
+                allCampaigns = data.reverse();
+                // Update Cache
+                localStorage.setItem(CACHE_KEY, JSON.stringify(allCampaigns));
+                localStorage.setItem(CACHE_TIME_KEY, Date.now());
+
+                if(!isBackground) {
+                    document.getElementById('loading').style.display = 'none';
+                    renderCampaigns(allCampaigns);
+                } else {
+                    console.log('Cache updated in background');
+                    // Optional: refresh view if user is on dashboard
+                    if(document.getElementById('dashboardView').style.display !== 'none') {
+                        renderCampaigns(allCampaigns);
+                    }
+                }
+            } catch(e) {
+                console.error(e);
+                if(!isBackground) document.getElementById('loading').innerText = 'Error loading data.';
+            }
+        }
+
+        function renderCampaigns(list, containerId = 'campaignContainer') {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            if(!list || list.length === 0) {
+                container.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#94A3B8; margin-top:20px;">No campaigns found.</div>';
+                return;
+            }
+            list.forEach(camp => {
+                const percent = Math.min(100, Math.round((camp.raised_amount / camp.target_amount) * 100));
+                const colorVar = catMap[camp.category] || 'var(--c-default)'; 
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.onclick = () => showDetails(camp); 
+                
+                div.innerHTML = `
+                    <div class="card-placeholder" style="background:${colorVar}">${camp.title ? escapeHtml(camp.title.substring(0,2).toUpperCase()) : '??'}</div>
+                    <div class="card-body">
+                        <span class="cat-badge" style="background:${colorVar}; color:white; opacity:0.8">${escapeHtml(camp.category || 'General')}</span>
+                        <div class="card-title">${escapeHtml(camp.title)}</div>
+                        <div class="card-creator">by ${escapeHtml(camp.creator_name)}</div>
+                        <div class="progress-bg"><div class="progress-fill" style="width:${percent}%; background:${colorVar}"></div></div>
+                        <div class="card-stats"><span>₹${camp.raised_amount}</span><span>${percent}%</span></div>
+                    </div>`;
+                container.appendChild(div);
+            });
+        }
+
+        // --- NAVIGATION ---
+        function navigate(view, param) {
+            // Reset Sidebar active state
+            document.querySelectorAll('#sidebar .nav-item').forEach(i => i.classList.remove('active'));
+            if(view === 'Home') document.getElementById('nav-Home').classList.add('active');
+            if(view === 'MyProfile') document.getElementById('nav-Profile').classList.add('active');
+            
+            document.getElementById('sidebar').classList.remove('open');
+            closeDetails();
+
+            // Hide all views
+            ['dashboardView', 'profileView', 'contentView', 'detailsView'].forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+
+            if(view === 'Home') {
+                document.getElementById('dashboardView').style.display = 'block';
+                document.getElementById('pageTitle').innerText = 'All Campaigns';
+                renderCampaigns(allCampaigns);
+            } else if (view === 'MyProfile') {
+                showMyProfile();
+            } else if (view === 'CreatorProfile') {
+                showCreatorProfile(param);
+            } else if (view === 'Content') {
+                showContent(param);
+            }
+        }
+
+        function filterCategory(cat, el) {
+            navigate('Home'); 
+            const filtered = allCampaigns.filter(c => c.category === cat);
+            renderCampaigns(filtered);
+            document.getElementById('pageTitle').innerText = cat + ' Campaigns';
+        }
+
+        function showMyProfile() {
+            document.getElementById('profileView').style.display = 'block';
+            document.getElementById('profileName').innerText = 'My Profile';
+            document.getElementById('profileSub').innerText = 'Track your impact and active campaigns';
+
+            const userCampaigns = allCampaigns.filter(c => myCampaigns.includes(c.id));
+            updateProfileStats(userCampaigns);
+            renderCampaigns(userCampaigns, 'profileContainer');
+        }
+
+        function showCreatorProfile(creatorName) {
+            document.getElementById('profileView').style.display = 'block';
+            document.getElementById('profileName').innerText = escapeHtml(creatorName) + "'s Profile";
+            document.getElementById('profileSub').innerText = 'Campaigns created by this user';
+
+            // Filter by creator name (Case insensitive mostly safe for MVP)
+            const creatorCampaigns = allCampaigns.filter(c => c.creator_name.toLowerCase() === creatorName.toLowerCase());
+            updateProfileStats(creatorCampaigns);
+            renderCampaigns(creatorCampaigns, 'profileContainer');
+        }
+
+        function updateProfileStats(list) {
+            const totalRaised = list.reduce((sum, c) => sum + (parseFloat(c.raised_amount) || 0), 0);
+            document.getElementById('profCount').innerText = list.length;
+            document.getElementById('profRaised').innerText = '₹' + totalRaised;
+        }
+
+        function showContent(type) {
+            document.getElementById('contentView').style.display = 'block';
+            const html = contentPages[type] || '<h2>Page Not Found</h2>';
+            document.getElementById('contentBoxBody').innerHTML = html;
+        }
+
+        function handleSearch(term) {
+            term = term.toLowerCase();
+            const filtered = allCampaigns.filter(c => 
+                (c.title && c.title.toLowerCase().includes(term)) || 
+                (c.category && c.category.toLowerCase().includes(term))
+            );
+            renderCampaigns(filtered);
+        }
+
+        function toggleSidebar(e) {
+            e.stopPropagation(); 
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // --- DETAILS SPA ---
+        function showDetails(camp) {
+            currentDetails = camp;
+            const colorVar = catMap[camp.category] || 'var(--c-default)';
+            const percent = Math.min(100, Math.round((camp.raised_amount / camp.target_amount) * 100));
+
+            document.getElementById('detHero').style.background = colorVar;
+            document.getElementById('detHero').innerText = escapeHtml(camp.title.substring(0,2).toUpperCase());
+            document.getElementById('detBadge').innerText = escapeHtml(camp.category);
+            document.getElementById('detBadge').style.background = colorVar;
+            document.getElementById('detBadge').style.color = 'white';
+            document.getElementById('detTitle').innerText = escapeHtml(camp.title);
+            
+            // Set Creator Link
+            const creatorSpan = document.getElementById('detCreator');
+            creatorSpan.innerText = escapeHtml(camp.creator_name);
+            creatorSpan.onclick = () => navigate('CreatorProfile', camp.creator_name);
+
+            document.getElementById('detDesc').innerText = escapeHtml(camp.description);
+            document.getElementById('detRaised').innerText = `₹${camp.raised_amount}`;
+            document.getElementById('detTarget').innerText = `₹${camp.target_amount}`;
+            document.getElementById('detBar').style.width = `${percent}%`;
+            document.getElementById('detBar').style.background = colorVar;
+            document.getElementById('detRewards').innerText = camp.rewards ? escapeHtml(camp.rewards) : 'No specific rewards listed.';
+            
+            let dateStr = 'No end date';
+            if(camp.end_date) { const d = new Date(camp.end_date); if(!isNaN(d)) dateStr = d.toDateString(); }
+            document.getElementById('detEnd').innerText = dateStr;
+
+            // Hide all others
+            ['dashboardView', 'profileView', 'contentView'].forEach(id => document.getElementById(id).style.display = 'none');
+            
+            document.getElementById('detailsView').style.display = 'block';
+            window.location.hash = camp.id;
+            window.scrollTo(0,0);
+        }
+
+        function closeDetails() {
+            document.getElementById('detailsView').style.display = 'none';
+            document.getElementById('dashboardView').style.display = 'block'; 
+            history.pushState("", document.title, window.location.pathname + window.location.search);
+        }
+
+        function handleDeepLink() {
+            const hash = window.location.hash.substring(1);
+            if(hash && allCampaigns.length > 0) {
+                const found = allCampaigns.find(c => c.id === hash);
+                if(found) showDetails(found);
+            }
+        }
+
+        function shareWhatsApp() {
+            const url = window.location.href; 
+            const text = `Check out this campaign: ${currentDetails.title} on FundFlow!`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`);
+        }
+
+        // --- MODALS ---
+        function openCreateModal() { 
+            document.getElementById('createModal').style.display = 'flex'; 
+            const n1 = Math.floor(Math.random() * 10) + 1;
+            const n2 = Math.floor(Math.random() * 10) + 1;
+            captchaAnswer = n1 + n2;
+            document.getElementById('captchaQ').innerText = `${n1} + ${n2} = ?`;
+            document.getElementById('cCaptcha').value = '';
+        }
+        
+        function openDonateModalFromDetails() {
+            document.getElementById('dTitle').innerText = currentDetails.title;
+            document.getElementById('donateModal').style.display = 'flex';
+            updateQR();
+        }
+
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function updateQR() {
+            const amt = document.getElementById('dAmount').value;
+            const upiString = `upi://pay?pa=${currentDetails.upi_id}&pn=FundFlow&am=${amt}&cu=INR`;
+            document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiString)}`;
+            document.getElementById('upiLink').href = upiString;
+            
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            const btn = document.getElementById('upiLink');
+            const instruct = document.getElementById('payInstruct');
+            
+            if (isMobile) {
+                btn.style.display = 'flex'; 
+                instruct.innerText = "Tap button below or scan QR";
+            } else {
+                btn.style.display = 'none';
+                instruct.innerText = "Scan this QR code with your mobile UPI app";
+            }
+        }
+
+        function submitCampaign() {
+            const userAns = parseInt(document.getElementById('cCaptcha').value);
+            if(userAns !== captchaAnswer) {
+                alert('Incorrect Math Answer. Please try again.');
+                return;
+            }
+
+            const btn = document.querySelector('#createModal .btn');
+            const originalText = btn.innerText;
+            btn.innerText = 'Creating...';
+            
+            const data = {
+                action: 'createCampaign',
+                category: document.getElementById('cCat').value,
+                title: document.getElementById('cTitle').value,
+                desc: document.getElementById('cDesc').value,
+                rewards: document.getElementById('cRewards').value,
+                target: document.getElementById('cTarget').value,
+                endDate: document.getElementById('cDate').value,
+                upi: document.getElementById('cUpi').value,
+                creator: document.getElementById('cCreator').value
+            };
+
+            fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) })
+            .then(() => { 
+                alert('Campaign Created!'); 
+                // Invalidate Cache since new data exists
+                localStorage.removeItem(CACHE_KEY);
+                
+                setTimeout(async () => {
+                    await fetchCampaigns();
+                    const newCamp = allCampaigns.find(c => c.title === data.title && c.creator_name === data.creator);
+                    if(newCamp) {
+                        myCampaigns.push(newCamp.id);
+                        localStorage.setItem('myCampaigns', JSON.stringify(myCampaigns));
+                    }
+                    location.reload(); 
+                }, 1500);
+            })
+            .catch(err => { alert('Error'); btn.innerText = originalText; });
+        }
+
+        function submitDonation() {
+            const btn = document.querySelector('#donateModal .btn');
+            btn.innerText = 'Verifying...';
+            
+            const data = {
+                action: 'donate',
+                campId: currentDetails.id,
+                amount: document.getElementById('dAmount').value,
+                donor: document.getElementById('dName').value,
+                ref: document.getElementById('dRef').value
+            };
+
+            fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) })
+            .then(() => { 
+                alert('Submitted for verification!'); 
+                // Invalidate Cache to show updated funds
+                localStorage.removeItem(CACHE_KEY);
+                location.reload(); 
+            });
+        }
+    </script>
+</body>
+</html>
