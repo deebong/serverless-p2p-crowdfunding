@@ -4,7 +4,7 @@ A decentralized, serverless Single Page Application (SPA) for crowdfunding that 
 
 **About**
 
-**FundFlow** is a modern, mobile-first crowdfunding web application designed to connect creators directly with backers. Unlike traditional platforms that take a commission and hold funds, FundFlow facilitates **direct UPI transfers** (GPay, PhonePe, Paytm) from the backer to the creator.
+**FundFlow** is a modern, mobile-first crowdfunding web application designed to connect creators directly with donors. Unlike traditional platforms that take a commission and hold funds, FundFlow facilitates **direct UPI transfers** (GPay, PhonePe, Paytm) from the donor to the creator.
 
 The entire backend is powered by **Google Sheets** and **Google Apps Script**, making this a completely free-to-host solution with zero infrastructure costs.
 
