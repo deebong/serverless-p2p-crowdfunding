@@ -2,6 +2,10 @@
 
 A decentralized, serverless Single Page Application (SPA) for crowdfunding that uses Google Sheets as a database and UPI for direct peer-to-peer payments.
 
+<p align="left">
+  <img src="./screenshot.jpg" alt="P2P Crowdfunding Screenshot" width="800">
+</p>
+
 **About**
 
 **FundFlow** is a modern, mobile-first crowdfunding web application designed to connect creators directly with donors. Unlike traditional platforms that take a commission and hold funds, FundFlow facilitates **direct UPI transfers** (GPay, PhonePe, Paytm) from the donor to the creator.
